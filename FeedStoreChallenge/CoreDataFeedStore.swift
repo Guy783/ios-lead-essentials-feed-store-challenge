@@ -9,6 +9,9 @@
 import Foundation
 
 public final class CoreDataFeedStore: FeedStore {
+	
+	public init () {}
+	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 	
 	}
