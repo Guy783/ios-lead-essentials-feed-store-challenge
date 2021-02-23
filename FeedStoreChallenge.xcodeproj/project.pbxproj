@@ -21,6 +21,7 @@
 		8B116A8D25DE992900924453 /* CoreDataFeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B116A8C25DE992900924453 /* CoreDataFeedStore.swift */; };
 		8B116A9F25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 8B116A9D25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodeld */; };
 		8B54E03C25E58E1E00D4C11F /* PersistentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B54E03B25E58E1E00D4C11F /* PersistentContainer.swift */; };
+		8BFF8E8C25E5AC1F00603614 /* CoreDataFeed+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BFF8E8B25E5AC1F00603614 /* CoreDataFeed+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		8B116A8C25DE992900924453 /* CoreDataFeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataFeedStore.swift; sourceTree = "<group>"; };
 		8B116A9E25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FeedStoreDataModel.xcdatamodel; sourceTree = "<group>"; };
 		8B54E03B25E58E1E00D4C11F /* PersistentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentContainer.swift; sourceTree = "<group>"; };
+		8BFF8E8B25E5AC1F00603614 /* CoreDataFeed+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreDataFeed+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,10 +132,19 @@
 		8B116A9C25DEA91E00924453 /* Core Data */ = {
 			isa = PBXGroup;
 			children = (
+				8BFF8E8A25E5AC1300603614 /* Model */,
 				8B116A9D25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodeld */,
 				8B54E03B25E58E1E00D4C11F /* PersistentContainer.swift */,
 			);
 			path = "Core Data";
+			sourceTree = "<group>";
+		};
+		8BFF8E8A25E5AC1300603614 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				8BFF8E8B25E5AC1F00603614 /* CoreDataFeed+Extensions.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -248,6 +259,7 @@
 			files = (
 				8B116A8D25DE992900924453 /* CoreDataFeedStore.swift in Sources */,
 				08CE2BA62285BCB600183A1B /* FeedStore.swift in Sources */,
+				8BFF8E8C25E5AC1F00603614 /* CoreDataFeed+Extensions.swift in Sources */,
 				8B54E03C25E58E1E00D4C11F /* PersistentContainer.swift in Sources */,
 				08CE2BA82285BCC600183A1B /* LocalFeedImage.swift in Sources */,
 				8B116A9F25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodeld in Sources */,

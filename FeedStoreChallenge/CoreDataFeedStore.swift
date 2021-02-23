@@ -21,6 +21,7 @@ public final class CoreDataFeedStore: FeedStore {
 		return container
 	}()
 	
+	
 	public init () {}
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
@@ -28,7 +29,6 @@ public final class CoreDataFeedStore: FeedStore {
 	}
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-		
 		let context = persistentContainer.newBackgroundContext()
 		
 		let coreDataFeed = CoreDataFeed(context: context)
@@ -53,40 +53,18 @@ public final class CoreDataFeedStore: FeedStore {
 	
 	public func retrieve(completion: @escaping RetrievalCompletion) {
 		let request = CoreDataFeed.createFetchRequest()
-		let sort = NSSortDescriptor(key: "id", ascending: false)
-		request.sortDescriptors = [sort]
-		
 		do {
 			let coreDataFeeds = try persistentContainer.viewContext.fetch(request)
 			guard
 				let coreDataFeed = coreDataFeeds.first,
 				let timestamp = coreDataFeed.timestamp,
-				let coreDataFeedImagesSet = coreDataFeed.coreDataFeedImage,
-				let coreDataFeedImages = coreDataFeedImagesSet.allObjects as? [CoreDataFeedImage] else {
+				let localFeedImages = coreDataFeed.localFeedImages else {
 				completion(.empty)
 				return
 			}
-			let localFeedImages = coreDataFeedImages.compactMap { coreDataFeedImage -> LocalFeedImage? in
-					guard let id = coreDataFeedImage.id, let url = coreDataFeedImage.url else { return nil }
-					let feed = LocalFeedImage(id: id, description: coreDataFeedImage.feedDescription, location: coreDataFeedImage.location, url: url)
-					return feed
-				}
-				completion(.found(feed: localFeedImages, timestamp: timestamp))
-			
+			completion(.found(feed: localFeedImages, timestamp: timestamp))
 		} catch {
 			completion(.failure(error))
 		}
-	}
-}
-
-extension CoreDataFeed {
-	@nonobjc public class func createFetchRequest() -> NSFetchRequest<CoreDataFeed> {
-		return NSFetchRequest<CoreDataFeed>(entityName: String(describing: CoreDataFeed.self))
-	}
-}
-
-extension Set {
-	var array: [Element] {
-		return Array(self)
 	}
 }
