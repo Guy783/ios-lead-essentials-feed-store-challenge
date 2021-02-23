@@ -4,6 +4,7 @@
 
 import XCTest
 import FeedStoreChallenge
+import CoreData
 
 class FeedStoreIntegrationTests: XCTestCase {
 	
@@ -33,14 +34,14 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 	
 	func test_retrieve_deliversFeedInsertedOnAnotherInstance() throws {
-//		let storeToInsert = try makeSUT()
-//		let storeToLoad = try makeSUT()
-//		let feed = uniqueImageFeed()
-//		let timestamp = Date()
-//
-//		insert((feed, timestamp), to: storeToInsert)
-//
-//		expect(storeToLoad, toRetrieve: .found(feed: feed, timestamp: timestamp))
+		let storeToInsert = try makeSUT()
+		let storeToLoad = try makeSUT()
+		let feed = uniqueImageFeed()
+		let timestamp = Date()
+
+		insert((feed, timestamp), to: storeToInsert)
+
+		expect(storeToLoad, toRetrieve: .found(feed: feed, timestamp: timestamp))
 	}
 	
 	func test_insert_overridesFeedInsertedOnAnotherInstance() throws {
@@ -76,11 +77,30 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 	
 	private func setupEmptyStoreState() throws {
+		let persistentContainer = PersistentContainer(name: "FeedStoreDataModel")
+		persistentContainer.loadPersistentStores { description, error in
+			if let error = error {
+				fatalError("Unable to load persistent stores: \(error)")
+			}
+		}
+
+		let managedObjectContext = persistentContainer.newBackgroundContext()
+		let coreDataFeedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CoreDataFeed.self))
+		let coreDataFeedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: coreDataFeedFetchRequest)
 		
+		let coreDataFeedImagFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CoreDataFeed.self))
+		let coreDataFeedImageDeleteRequest = NSBatchDeleteRequest(fetchRequest: coreDataFeedImagFetchRequest)
+		
+		do {
+			try managedObjectContext.execute(coreDataFeedBatchDeleteRequest)
+			try managedObjectContext.execute(coreDataFeedImageDeleteRequest)
+		} catch {
+			XCTFail("Could not batch delete CoreDataFeedImage's ")
+		}
 	}
 	
 	private func undoStoreSideEffects() throws {
 		
 	}
-	
+
 }
