@@ -21,28 +21,16 @@ public final class CoreDataFeedStore: FeedStore {
 		return container
 	}()
 	
-	
 	public init () {}
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-		
 	}
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-		let context = persistentContainer.newBackgroundContext()
-		
-		let coreDataFeed = CoreDataFeed(context: context)
-		coreDataFeed.id = UUID()
-		coreDataFeed.timestamp = timestamp
-		
-		for localFeedImage in feed {
-			let coreDataFeedImage = CoreDataFeedImage(context: context)
-			coreDataFeedImage.id = localFeedImage.id
-			coreDataFeedImage.feedDescription = localFeedImage.description ?? ""
-			coreDataFeedImage.location = localFeedImage.location
-			coreDataFeedImage.url = localFeedImage.url
-			coreDataFeedImage.coreDataFeed = coreDataFeed
-		}
+		let context = self.persistentContainer.newBackgroundContext()
+		let coreDataFeed = CoreDataFeed(context: context, timestamp: timestamp)
+		let feedSortedAlphabetically = feed.sorted { $0.id.uuidString < $1.id.uuidString }
+		self.createCoreDataFeedImages(for: coreDataFeed, from: feedSortedAlphabetically, withContext: context)
 		do {
 			try context.save()
 			completion(nil)
@@ -62,9 +50,25 @@ public final class CoreDataFeedStore: FeedStore {
 				completion(.empty)
 				return
 			}
-			completion(.found(feed: localFeedImages, timestamp: timestamp))
+			let feedSortedAlphabetically = localFeedImages.sorted { $0.id.uuidString < $1.id.uuidString }
+			completion(.found(feed: feedSortedAlphabetically, timestamp: timestamp))
 		} catch {
 			completion(.failure(error))
+		}
+	}
+}
+
+extension CoreDataFeedStore {
+	private func createCoreDataFeedImages(for coreDataFeed: CoreDataFeed, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) {
+		coreDataFeed.coreDataFeedImage = nil
+		
+		for localFeedImage in localFeedImages {
+			let coreDataFeedImage = CoreDataFeedImage(context: context)
+			coreDataFeedImage.id = localFeedImage.id
+			coreDataFeedImage.feedDescription = localFeedImage.description ?? ""
+			coreDataFeedImage.location = localFeedImage.location
+			coreDataFeedImage.url = localFeedImage.url
+			coreDataFeedImage.coreDataFeed = coreDataFeed
 		}
 	}
 }
