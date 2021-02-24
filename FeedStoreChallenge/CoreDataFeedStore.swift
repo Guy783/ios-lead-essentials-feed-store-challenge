@@ -28,29 +28,25 @@ public final class CoreDataFeedStore: FeedStore {
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		let context = self.persistentContainer.newBackgroundContext()
-		_ = createCoreDataFeed(for: feed, timestamp: timestamp, context: context)
+		var coreDataFeed: CoreDataFeed
+		
 		do {
+			let request = CoreDataFeed.createFetchRequest()
+			let coreDataFeeds = try context.fetch(request)
+			
+			if let returnedCoreDataFeed = coreDataFeeds.first {
+				coreDataFeed = returnedCoreDataFeed
+				coreDataFeed = addFeedImagesToCoreDataFeed(for: coreDataFeed, from: feed, withContext: context)
+			} else {
+				coreDataFeed = createCoreDataFeed(for: feed, timestamp: timestamp, context: context)
+			}
+			coreDataFeed.timestamp = timestamp
+		
 			try context.save()
 			completion(nil)
 		} catch {
 			completion(error)
 		}
-	}
-	
-	func createCoreDataFeed(for feed: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> CoreDataFeed {
-		let coreDataFeed = CoreDataFeed(context: context, timestamp: timestamp)
-		coreDataFeed.timestamp = timestamp
-		
-		let images = NSOrderedSet(array: feed.map { localFeedImage in
-			let coreDataFeedImage = CoreDataFeedImage(context: context)
-			coreDataFeedImage.id = localFeedImage.id
-			coreDataFeedImage.feedDescription = localFeedImage.description ?? ""
-			coreDataFeedImage.location = localFeedImage.location
-			coreDataFeedImage.url = localFeedImage.url
-			return coreDataFeedImage
-		})
-		coreDataFeed.coreDataFeedImage = images
-		return coreDataFeed
 	}
 	
 	public func retrieve(completion: @escaping RetrievalCompletion) {
@@ -72,15 +68,27 @@ public final class CoreDataFeedStore: FeedStore {
 }
 
 extension CoreDataFeedStore {
-	private func createCoreDataFeedImages(for coreDataFeed: CoreDataFeed, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) {
+	func createCoreDataFeed(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> CoreDataFeed {
+		let coreDataFeed = CoreDataFeed(context: context, timestamp: timestamp)
+		coreDataFeed.timestamp = timestamp
+		coreDataFeed.coreDataFeedImage = createCoreDataFeedImages(from: localFeedImages, withContext: context)
+		return coreDataFeed
+	}
+	
+	private func addFeedImagesToCoreDataFeed(for coreDataFeed: CoreDataFeed, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext)  -> CoreDataFeed {
 		coreDataFeed.coreDataFeedImage = nil
-		
-		for localFeedImage in localFeedImages {
+		coreDataFeed.coreDataFeedImage = createCoreDataFeedImages(from: localFeedImages, withContext: context)
+		return coreDataFeed
+	}
+	
+	private func createCoreDataFeedImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
+		NSOrderedSet(array: localFeedImages.map { localFeedImage in
 			let coreDataFeedImage = CoreDataFeedImage(context: context)
 			coreDataFeedImage.id = localFeedImage.id
 			coreDataFeedImage.feedDescription = localFeedImage.description ?? ""
 			coreDataFeedImage.location = localFeedImage.location
 			coreDataFeedImage.url = localFeedImage.url
-		}
+			return coreDataFeedImage
+		})
 	}
 }
