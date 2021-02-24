@@ -24,6 +24,16 @@ public final class CoreDataFeedStore: FeedStore {
 	public init () {}
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+		let context = self.persistentContainer.newBackgroundContext()
+		let coreDataFeedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CoreDataFeed.self))
+			let coreDataFeedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: coreDataFeedFetchRequest)
+			
+			do {
+				try context.execute(coreDataFeedBatchDeleteRequest)
+				completion(nil)
+			} catch {
+				completion(error)
+			}
 	}
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
