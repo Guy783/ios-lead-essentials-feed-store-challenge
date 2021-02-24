@@ -28,15 +28,29 @@ public final class CoreDataFeedStore: FeedStore {
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		let context = self.persistentContainer.newBackgroundContext()
-		let coreDataFeed = CoreDataFeed(context: context, timestamp: timestamp)
-		let feedSortedAlphabetically = feed.sorted { $0.id.uuidString < $1.id.uuidString }
-		self.createCoreDataFeedImages(for: coreDataFeed, from: feedSortedAlphabetically, withContext: context)
+		_ = createCoreDataFeed(for: feed, timestamp: timestamp, context: context)
 		do {
 			try context.save()
 			completion(nil)
 		} catch {
 			completion(error)
 		}
+	}
+	
+	func createCoreDataFeed(for feed: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> CoreDataFeed {
+		let coreDataFeed = CoreDataFeed(context: context, timestamp: timestamp)
+		coreDataFeed.timestamp = timestamp
+		
+		let images = NSOrderedSet(array: feed.map { localFeedImage in
+			let coreDataFeedImage = CoreDataFeedImage(context: context)
+			coreDataFeedImage.id = localFeedImage.id
+			coreDataFeedImage.feedDescription = localFeedImage.description ?? ""
+			coreDataFeedImage.location = localFeedImage.location
+			coreDataFeedImage.url = localFeedImage.url
+			return coreDataFeedImage
+		})
+		coreDataFeed.coreDataFeedImage = images
+		return coreDataFeed
 	}
 	
 	public func retrieve(completion: @escaping RetrievalCompletion) {
@@ -50,8 +64,7 @@ public final class CoreDataFeedStore: FeedStore {
 				completion(.empty)
 				return
 			}
-			let feedSortedAlphabetically = localFeedImages.sorted { $0.id.uuidString < $1.id.uuidString }
-			completion(.found(feed: feedSortedAlphabetically, timestamp: timestamp))
+			completion(.found(feed: localFeedImages, timestamp: timestamp))
 		} catch {
 			completion(.failure(error))
 		}
@@ -68,7 +81,6 @@ extension CoreDataFeedStore {
 			coreDataFeedImage.feedDescription = localFeedImage.description ?? ""
 			coreDataFeedImage.location = localFeedImage.location
 			coreDataFeedImage.url = localFeedImage.url
-			coreDataFeedImage.coreDataFeed = coreDataFeed
 		}
 	}
 }

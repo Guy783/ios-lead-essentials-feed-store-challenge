@@ -21,7 +21,7 @@ extension CoreDataFeed {
 	
 	var localFeedImages: [LocalFeedImage]? {
 		guard let coreDataFeedImagesSet = coreDataFeedImage,
-			  let coreDataFeedImages = coreDataFeedImagesSet.allObjects as? [CoreDataFeedImage] else {
+			  let coreDataFeedImages = coreDataFeedImagesSet.array as? [CoreDataFeedImage] else {
 			return nil
 		}
 		return coreDataFeedImages.compactMap { coreDataFeedImage -> LocalFeedImage? in

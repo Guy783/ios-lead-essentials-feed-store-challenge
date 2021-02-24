@@ -3,7 +3,7 @@
     <entity name="CoreDataFeed" representedClassName="CoreDataFeed" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="coreDataFeedImage" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CoreDataFeedImage" inverseName="coreDataFeed" inverseEntity="CoreDataFeedImage"/>
+        <relationship name="coreDataFeedImage" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="CoreDataFeedImage" inverseName="coreDataFeed" inverseEntity="CoreDataFeedImage"/>
     </entity>
     <entity name="CoreDataFeedImage" representedClassName="CoreDataFeedImage" syncable="YES" codeGenerationType="class">
         <attribute name="feedDescription" optional="YES" attributeType="String"/>
@@ -13,7 +13,7 @@
         <relationship name="coreDataFeed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CoreDataFeed" inverseName="coreDataFeedImage" inverseEntity="CoreDataFeed"/>
     </entity>
     <elements>
-        <element name="CoreDataFeedImage" positionX="-63" positionY="-18" width="128" height="14"/>
         <element name="CoreDataFeed" positionX="-63" positionY="9" width="128" height="74"/>
+        <element name="CoreDataFeedImage" positionX="-63" positionY="-18" width="128" height="14"/>
     </elements>
 </model>
