@@ -26,10 +26,15 @@ public final class CoreDataFeedStore: FeedStore {
 		return container
 	}()
 	
+	private let container: PersistentContainer
+	private let context: NSManagedObjectContext
 	private let queue = DispatchQueue(label: "\(CoreDataFeedStore.self)Queue",
 									  qos: .userInitiated)
 	
-	public init () {}
+	public init () {
+		container = CoreDataFeedStore.setupContainer()
+		context = container.newBackgroundContext()
+	}
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		perform { context in
@@ -59,15 +64,12 @@ public final class CoreDataFeedStore: FeedStore {
 	public func retrieve(completion: @escaping RetrievalCompletion) {
 		perform { context in
 			do {
-				let feedDBs = try CoreDataFeedStore.fetchFeedDBs(withContext: context)
-				guard
-					let feedDB = feedDBs.first,
-					let timestamp = feedDB.timestamp,
-					let localFeedImages = feedDB.localFeedImages else {
+				let feedDB = try FeedDB.fetch(in: context)
+				if let localFeedImages = feedDB?.localFeedImages, let timestamp = feedDB?.timestamp {
+					completion(.found(feed: localFeedImages, timestamp: timestamp))
+				} else {
 					completion(.empty)
-					return
 				}
-				completion(.found(feed: localFeedImages, timestamp: timestamp))
 			} catch {
 				completion(.failure(error))
 			}
@@ -75,7 +77,7 @@ public final class CoreDataFeedStore: FeedStore {
 	}
 }
 
-// MARK
+// MARK: Helpers
 extension CoreDataFeedStore {
 	private func perform(action: @escaping (NSManagedObjectContext) -> Void) {
 		let context = self.persistentContainer.newBackgroundContext()
@@ -86,36 +88,27 @@ extension CoreDataFeedStore {
 			}
 		}
 	}
+	
+	static func setupContainer() -> PersistentContainer {
+		let container = PersistentContainer(name: "FeedStoreDataModel")
+		container.loadPersistentStores { description, error in
+			if let error = error {
+				fatalError("Unable to load persistent stores: \(error)")
+			}
+		}
+		return container
+	}
 }
 
 extension CoreDataFeedStore {
 	@discardableResult
 	private static func feedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
-		var feedDB: FeedDB
-		let feedDBs = try CoreDataFeedStore.fetchFeedDBs(withContext: context)
+		try FeedDB.fetch(in: context).map(context.delete)
 		
-		if let returnedFeedDB = feedDBs.first {
-			feedDB = returnedFeedDB
-			feedDB = addFeedImagesToFeedDB(for: feedDB, from: localFeedImages, withContext: context)
-		} else {
-			feedDB = createFeedDB(for: localFeedImages, timestamp: timestamp, context: context)
-		}
-		
+		let feedDB = FeedDB(context: context, timestamp: timestamp)
+		feedDB.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
 		feedDB.timestamp = timestamp
 		return feedDB
-	}
-	
-	private static func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> FeedDB {
-		let coreDataFeed = FeedDB(context: context, timestamp: timestamp)
-		coreDataFeed.timestamp = timestamp
-		coreDataFeed.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
-		return coreDataFeed
-	}
-	
-	private static func addFeedImagesToFeedDB(for coreDataFeed: FeedDB, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> FeedDB {
-		coreDataFeed.feedImageDBs = nil
-		coreDataFeed.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
-		return coreDataFeed
 	}
 	
 	private static func createFeedDBImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
@@ -127,21 +120,6 @@ extension CoreDataFeedStore {
 			coreDataFeedImage.url = localFeedImage.url
 			return coreDataFeedImage
 		})
-	}
-}
-
-// MARK: - Fetch Methods
-extension CoreDataFeedStore {
-	private static func fetchFeedDBs(withContext context: NSManagedObjectContext) throws -> [FeedDB] {
-		let request = FeedDB.createFetchRequest()
-		return try context.fetch(request)
-	}
-}
-
-
-fileprivate extension Set {
-	var array: [Element] {
-		return Array(self)
 	}
 }
 
