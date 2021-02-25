@@ -23,6 +23,19 @@ public final class CoreDataFeedStore: FeedStore {
 		context = container.newBackgroundContext()
 	}
 	
+	static func setupContainer() -> PersistentContainer {
+		let container = PersistentContainer(name: "FeedStoreDataModel")
+		container.loadPersistentStores { description, error in
+			if let error = error {
+				fatalError("Unable to load persistent stores: \(error)")
+			}
+		}
+		return container
+	}
+}
+
+// MARK: - Create, Insert and Delete Functions
+extension CoreDataFeedStore {
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		perform { context in
 			do {
@@ -63,25 +76,8 @@ public final class CoreDataFeedStore: FeedStore {
 	}
 }
 
-// MARK: Helpers
+// MARK: Creation Methods
 extension CoreDataFeedStore {
-	private func perform(action: @escaping (NSManagedObjectContext) -> Void) {
-		context.perform { [weak self] in
-			guard let self = self else { return }
-			action(self.context)
-		}
-	}
-	
-	static func setupContainer() -> PersistentContainer {
-		let container = PersistentContainer(name: "FeedStoreDataModel")
-		container.loadPersistentStores { description, error in
-			if let error = error {
-				fatalError("Unable to load persistent stores: \(error)")
-			}
-		}
-		return container
-	}
-
 	@discardableResult
 	private static func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
 		try FeedDB.fetch(in: context).map(context.delete)
@@ -101,6 +97,16 @@ extension CoreDataFeedStore {
 			coreDataFeedImage.url = localFeedImage.url
 			return coreDataFeedImage
 		})
+	}
+}
+
+// MARK: Helpers
+extension CoreDataFeedStore {
+	private func perform(action: @escaping (NSManagedObjectContext) -> Void) {
+		context.perform { [weak self] in
+			guard let self = self else { return }
+			action(self.context)
+		}
 	}
 }
 
