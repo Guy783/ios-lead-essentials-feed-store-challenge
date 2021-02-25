@@ -27,7 +27,7 @@ public final class CoreDataFeedStore: FeedStore {
 		perform { context in
 			do {
 				try FeedDB.fetch(in: context).map(context.delete)
-				try context.save()
+				try self.container.saveContext(backgroundContext: context)
 				completion(nil)
 			} catch {
 				completion(error)
@@ -39,7 +39,7 @@ public final class CoreDataFeedStore: FeedStore {
 		perform { context in
 			do {
 				try CoreDataFeedStore.createFeedDB(for: feed, timestamp: timestamp, context: context)
-				try context.save()
+				try self.container.saveContext(backgroundContext: context)
 				completion(nil)
 			} catch {
 				completion(error)
@@ -81,9 +81,7 @@ extension CoreDataFeedStore {
 		}
 		return container
 	}
-}
 
-extension CoreDataFeedStore {
 	@discardableResult
 	private static func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
 		try FeedDB.fetch(in: context).map(context.delete)
