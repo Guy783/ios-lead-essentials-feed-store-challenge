@@ -22,6 +22,7 @@
 		8B116A9F25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 8B116A9D25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodeld */; };
 		8B54E03C25E58E1E00D4C11F /* PersistentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B54E03B25E58E1E00D4C11F /* PersistentContainer.swift */; };
 		8BFF8E8C25E5AC1F00603614 /* CoreDataFeed+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BFF8E8B25E5AC1F00603614 /* CoreDataFeed+Extensions.swift */; };
+		8BFF8E9525E775BB00603614 /* SharedTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BFF8E9425E775BA00603614 /* SharedTestHelpers.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,7 @@
 		8B116A9E25DEA9BF00924453 /* FeedStoreDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FeedStoreDataModel.xcdatamodel; sourceTree = "<group>"; };
 		8B54E03B25E58E1E00D4C11F /* PersistentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentContainer.swift; sourceTree = "<group>"; };
 		8BFF8E8B25E5AC1F00603614 /* CoreDataFeed+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreDataFeed+Extensions.swift"; sourceTree = "<group>"; };
+		8BFF8E9425E775BA00603614 /* SharedTestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTestHelpers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +110,7 @@
 		08CE2B982285BBD100183A1B /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				8BFF8E9325E7759000603614 /* Helper */,
 				08CE2BA92285BCE700183A1B /* FeedStoreSpecs */,
 				08CE2BB42285BEF100183A1B /* FeedStoreChallengeTests.swift */,
 				084BB13B24FE50A10091C705 /* FeedStoreIntegrationTests.swift */,
@@ -145,6 +148,14 @@
 				8BFF8E8B25E5AC1F00603614 /* CoreDataFeed+Extensions.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		8BFF8E9325E7759000603614 /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				8BFF8E9425E775BA00603614 /* SharedTestHelpers.swift */,
+			);
+			path = Helper;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -275,6 +286,7 @@
 				084BB13C24FE50A10091C705 /* FeedStoreIntegrationTests.swift in Sources */,
 				08CE2BB12285BCE700183A1B /* XCTestCase+FailableRetrieveFeedStoreSpecs.swift in Sources */,
 				08CE2BAF2285BCE700183A1B /* XCTestCase+FeedStoreSpecs.swift in Sources */,
+				8BFF8E9525E775BB00603614 /* SharedTestHelpers.swift in Sources */,
 				08CE2BB32285BCE700183A1B /* XCTestCase+FailableInsertFeedStoreSpecs.swift in Sources */,
 				084BB13E24FE56830091C705 /* XCTestCase+FeedStoreHelpers.swift in Sources */,
 				08CE2BB52285BEF100183A1B /* FeedStoreChallengeTests.swift in Sources */,

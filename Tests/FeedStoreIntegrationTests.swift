@@ -71,36 +71,15 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 	
 	// - MARK: Helpers
-	
 	private func makeSUT() throws -> FeedStore {
 		CoreDataFeedStore()
 	}
 	
 	private func setupEmptyStoreState() throws {
-		let persistentContainer = PersistentContainer(name: "FeedStoreDataModel")
-		persistentContainer.loadPersistentStores { description, error in
-			if let error = error {
-				fatalError("Unable to load persistent stores: \(error)")
-			}
-		}
-
-		let managedObjectContext = persistentContainer.newBackgroundContext()
-		let coreDataFeedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CoreDataFeed.self))
-		let coreDataFeedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: coreDataFeedFetchRequest)
-		
-		let coreDataFeedImagFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CoreDataFeed.self))
-		let coreDataFeedImageDeleteRequest = NSBatchDeleteRequest(fetchRequest: coreDataFeedImagFetchRequest)
-		
-		do {
-			try managedObjectContext.execute(coreDataFeedBatchDeleteRequest)
-			try managedObjectContext.execute(coreDataFeedImageDeleteRequest)
-		} catch {
-			XCTFail("Could not batch delete CoreDataFeedImage's ")
-		}
+		clearCoreDataStore()
 	}
-	
+
 	private func undoStoreSideEffects() throws {
-		
+		clearCoreDataStore()
 	}
-
 }
