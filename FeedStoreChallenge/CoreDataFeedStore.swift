@@ -15,21 +15,8 @@ protocol CoreDataManager {
 }
 
 public final class CoreDataFeedStore: FeedStore {
-	
-	lazy var persistentContainer: PersistentContainer = {
-		let container = PersistentContainer(name: "FeedStoreDataModel")
-		container.loadPersistentStores { description, error in
-			if let error = error {
-				fatalError("Unable to load persistent stores: \(error)")
-			}
-		}
-		return container
-	}()
-	
 	private let container: PersistentContainer
 	private let context: NSManagedObjectContext
-	private let queue = DispatchQueue(label: "\(CoreDataFeedStore.self)Queue",
-									  qos: .userInitiated)
 	
 	public init () {
 		container = CoreDataFeedStore.setupContainer()
@@ -38,10 +25,9 @@ public final class CoreDataFeedStore: FeedStore {
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		perform { context in
-			let feedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: FeedDB.self))
-			let feedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: feedFetchRequest)
 			do {
-				try context.execute(feedBatchDeleteRequest)
+				try FeedDB.fetch(in: context).map(context.delete)
+				try context.save()
 				completion(nil)
 			} catch {
 				completion(error)
@@ -52,7 +38,7 @@ public final class CoreDataFeedStore: FeedStore {
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		perform { context in
 			do {
-				try CoreDataFeedStore.feedDB(for: feed, timestamp: timestamp, context: context)
+				try CoreDataFeedStore.createFeedDB(for: feed, timestamp: timestamp, context: context)
 				try context.save()
 				completion(nil)
 			} catch {
@@ -80,12 +66,9 @@ public final class CoreDataFeedStore: FeedStore {
 // MARK: Helpers
 extension CoreDataFeedStore {
 	private func perform(action: @escaping (NSManagedObjectContext) -> Void) {
-		let context = self.persistentContainer.newBackgroundContext()
 		context.perform { [weak self] in
 			guard let self = self else { return }
-			self.queue.async(flags: .barrier) {
-				action(context)
-			}
+			action(self.context)
 		}
 	}
 	
@@ -102,7 +85,7 @@ extension CoreDataFeedStore {
 
 extension CoreDataFeedStore {
 	@discardableResult
-	private static func feedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
+	private static func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
 		try FeedDB.fetch(in: context).map(context.delete)
 		
 		let feedDB = FeedDB(context: context, timestamp: timestamp)
