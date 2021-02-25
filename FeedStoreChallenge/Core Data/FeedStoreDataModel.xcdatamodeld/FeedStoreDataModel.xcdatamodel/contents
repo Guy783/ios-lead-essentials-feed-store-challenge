@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20B29" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="CoreDataFeed" representedClassName="CoreDataFeed" syncable="YES" codeGenerationType="class">
+    <entity name="FeedDB" representedClassName="FeedDB" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="coreDataFeedImage" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="CoreDataFeedImage" inverseName="coreDataFeed" inverseEntity="CoreDataFeedImage"/>
+        <relationship name="feedImageDBs" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="FeedImageDB" inverseName="feedDB" inverseEntity="FeedImageDB"/>
     </entity>
-    <entity name="CoreDataFeedImage" representedClassName="CoreDataFeedImage" syncable="YES" codeGenerationType="class">
-        <attribute name="feedDescription" optional="YES" attributeType="String"/>
+    <entity name="FeedImageDB" representedClassName="FeedImageDB" syncable="YES" codeGenerationType="class">
+        <attribute name="desc" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="location" optional="YES" attributeType="String"/>
         <attribute name="url" attributeType="URI"/>
-        <relationship name="coreDataFeed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CoreDataFeed" inverseName="coreDataFeedImage" inverseEntity="CoreDataFeed"/>
+        <relationship name="feedDB" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedDB" inverseName="feedImageDBs" inverseEntity="FeedDB"/>
     </entity>
     <elements>
-        <element name="CoreDataFeed" positionX="-63" positionY="9" width="128" height="74"/>
-        <element name="CoreDataFeedImage" positionX="-63" positionY="-18" width="128" height="14"/>
+        <element name="FeedDB" positionX="-63" positionY="9" width="128" height="74"/>
+        <element name="FeedImageDB" positionX="-63" positionY="-18" width="128" height="104"/>
     </elements>
 </model>

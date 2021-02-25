@@ -25,10 +25,10 @@ public final class CoreDataFeedStore: FeedStore {
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		let context = self.persistentContainer.newBackgroundContext()
-		let coreDataFeedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CoreDataFeed.self))
-		let coreDataFeedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: coreDataFeedFetchRequest)
+		let feedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: FeedDB.self))
+		let feedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: feedFetchRequest)
 		do {
-			try context.execute(coreDataFeedBatchDeleteRequest)
+			try context.execute(feedBatchDeleteRequest)
 			completion(nil)
 		} catch {
 			completion(error)
@@ -38,7 +38,7 @@ public final class CoreDataFeedStore: FeedStore {
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		do {
 			let context = self.persistentContainer.newBackgroundContext()
-			try coreDataFeed(for: feed, timestamp: timestamp, context: context)
+			try feedDB(for: feed, timestamp: timestamp, context: context)
 			try context.save()
 			completion(nil)
 		} catch {
@@ -49,11 +49,11 @@ public final class CoreDataFeedStore: FeedStore {
 	public func retrieve(completion: @escaping RetrievalCompletion) {
 		do {
 			let context = self.persistentContainer.newBackgroundContext()
-			let coreDataFeeds = try fetchCoreDataFeeds(withContext: context)
+			let feedDBs = try fetchFeedDBs(withContext: context)
 			guard
-				let coreDataFeed = coreDataFeeds.first,
-				let timestamp = coreDataFeed.timestamp,
-				let localFeedImages = coreDataFeed.localFeedImages else {
+				let feedDB = feedDBs.first,
+				let timestamp = feedDB.timestamp,
+				let localFeedImages = feedDB.localFeedImages else {
 				completion(.empty)
 				return
 			}
@@ -66,39 +66,39 @@ public final class CoreDataFeedStore: FeedStore {
 
 extension CoreDataFeedStore {
 	@discardableResult
-	private func coreDataFeed(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> CoreDataFeed {
-		var coreDataFeed: CoreDataFeed
-		let coreDataFeeds = try fetchCoreDataFeeds(withContext: context)
+	private func feedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
+		var feedDB: FeedDB
+		let feedDBs = try fetchFeedDBs(withContext: context)
 		
-		if let returnedCoreDataFeed = coreDataFeeds.first {
-			coreDataFeed = returnedCoreDataFeed
-			coreDataFeed = addFeedImagesToCoreDataFeed(for: coreDataFeed, from: localFeedImages, withContext: context)
+		if let returnedFeedDB = feedDBs.first {
+			feedDB = returnedFeedDB
+			feedDB = addFeedImagesToFeedDB(for: feedDB, from: localFeedImages, withContext: context)
 		} else {
-			coreDataFeed = createCoreDataFeed(for: localFeedImages, timestamp: timestamp, context: context)
+			feedDB = createFeedDB(for: localFeedImages, timestamp: timestamp, context: context)
 		}
 		
+		feedDB.timestamp = timestamp
+		return feedDB
+	}
+	
+	private func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> FeedDB {
+		let coreDataFeed = FeedDB(context: context, timestamp: timestamp)
 		coreDataFeed.timestamp = timestamp
+		coreDataFeed.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
 		return coreDataFeed
 	}
 	
-	private func createCoreDataFeed(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> CoreDataFeed {
-		let coreDataFeed = CoreDataFeed(context: context, timestamp: timestamp)
-		coreDataFeed.timestamp = timestamp
-		coreDataFeed.coreDataFeedImage = createCoreDataFeedImages(from: localFeedImages, withContext: context)
+	private func addFeedImagesToFeedDB(for coreDataFeed: FeedDB, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> FeedDB {
+		coreDataFeed.feedImageDBs = nil
+		coreDataFeed.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
 		return coreDataFeed
 	}
 	
-	private func addFeedImagesToCoreDataFeed(for coreDataFeed: CoreDataFeed, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext)  -> CoreDataFeed {
-		coreDataFeed.coreDataFeedImage = nil
-		coreDataFeed.coreDataFeedImage = createCoreDataFeedImages(from: localFeedImages, withContext: context)
-		return coreDataFeed
-	}
-	
-	private func createCoreDataFeedImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
+	private func createFeedDBImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
 		NSOrderedSet(array: localFeedImages.map { localFeedImage in
-			let coreDataFeedImage = CoreDataFeedImage(context: context)
+			let coreDataFeedImage = FeedImageDB(context: context)
 			coreDataFeedImage.id = localFeedImage.id
-			coreDataFeedImage.feedDescription = localFeedImage.description ?? ""
+			coreDataFeedImage.desc = localFeedImage.description ?? ""
 			coreDataFeedImage.location = localFeedImage.location
 			coreDataFeedImage.url = localFeedImage.url
 			return coreDataFeedImage
@@ -108,8 +108,8 @@ extension CoreDataFeedStore {
 
 // MARK: - Fetch Methods
 extension CoreDataFeedStore {
-	private func fetchCoreDataFeeds(withContext context: NSManagedObjectContext) throws -> [CoreDataFeed] {
-		let request = CoreDataFeed.createFetchRequest()
+	private func fetchFeedDBs(withContext context: NSManagedObjectContext) throws -> [FeedDB] {
+		let request = FeedDB.createFetchRequest()
 		return try context.fetch(request)
 	}
 }
@@ -121,16 +121,16 @@ fileprivate extension Set {
 	}
 }
 
-fileprivate extension CoreDataFeed {
+fileprivate extension FeedDB {
 	var localFeedImages: [LocalFeedImage]? {
-		guard let coreDataFeedImagesSet = coreDataFeedImage,
-			  let coreDataFeedImages = coreDataFeedImagesSet.array as? [CoreDataFeedImage] else {
+		guard let coreDataFeedImagesSet = feedImageDBs,
+			  let coreDataFeedImages = coreDataFeedImagesSet.array as? [FeedImageDB] else {
 			return nil
 		}
 		return coreDataFeedImages.compactMap { coreDataFeedImage -> LocalFeedImage? in
 			guard let id = coreDataFeedImage.id, let url = coreDataFeedImage.url else { return nil }
 			let feed = LocalFeedImage(id: id,
-									  description: coreDataFeedImage.feedDescription,
+									  description: coreDataFeedImage.description,
 									  location: coreDataFeedImage.location,
 									  url: url)
 			return feed

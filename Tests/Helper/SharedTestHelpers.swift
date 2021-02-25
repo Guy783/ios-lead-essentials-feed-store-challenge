@@ -20,7 +20,7 @@ func clearCoreDataStore() {
 	}
 
 	let managedObjectContext = persistentContainer.newBackgroundContext()
-	let coreDataFeedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: CoreDataFeed.self))
+	let coreDataFeedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: FeedDB.self))
 	let coreDataFeedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: coreDataFeedFetchRequest)
 	do {
 		try managedObjectContext.execute(coreDataFeedBatchDeleteRequest)

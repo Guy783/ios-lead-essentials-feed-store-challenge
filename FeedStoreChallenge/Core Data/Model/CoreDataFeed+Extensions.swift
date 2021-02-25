@@ -1,5 +1,5 @@
 //
-//  CoreDataFeed+Extensions.swift
+//  FeedDB+Extensions.swift
 //  FeedStoreChallenge
 //
 //  Created by Tak Mazarura on 23/02/2021.
@@ -8,14 +8,14 @@
 
 import CoreData
 
-extension CoreDataFeed {
+extension FeedDB {
 	convenience init(context: NSManagedObjectContext, id: UUID = UUID(), timestamp: Date) {
 		self.init(context: context)
 		self.id = UUID()
 		self.timestamp = timestamp
 	}
 	
-	@nonobjc public class func createFetchRequest() -> NSFetchRequest<CoreDataFeed> {
-		return NSFetchRequest<CoreDataFeed>(entityName: String(describing: CoreDataFeed.self))
+	@nonobjc public class func createFetchRequest() -> NSFetchRequest<FeedDB> {
+		return NSFetchRequest<FeedDB>(entityName: String(describing: FeedDB.self))
 	}
 }
