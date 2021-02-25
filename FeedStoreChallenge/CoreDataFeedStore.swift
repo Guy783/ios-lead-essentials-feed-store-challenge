@@ -9,6 +9,11 @@
 import Foundation
 import CoreData
 
+protocol CoreDataManager {
+	var managedObjectContext: NSManagedObjectContext { get set }
+	var persistentContainer: PersistentContainer { get set }
+}
+
 public final class CoreDataFeedStore: FeedStore {
 	
 	lazy var persistentContainer: PersistentContainer = {
@@ -20,46 +25,58 @@ public final class CoreDataFeedStore: FeedStore {
 		}
 		return container
 	}()
+
+	private let queue = DispatchQueue(label: "\(CoreDataFeedStore.self)Queue",
+									  qos: .userInitiated)
 	
 	public init () {}
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-		let context = self.persistentContainer.newBackgroundContext()
-		let feedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: FeedDB.self))
-		let feedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: feedFetchRequest)
-		do {
-			try context.execute(feedBatchDeleteRequest)
-			completion(nil)
-		} catch {
-			completion(error)
+		queue.async(flags: .barrier) { [weak self] in
+			guard let self = self else { return }
+			let context = self.persistentContainer.newBackgroundContext()
+			let feedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: FeedDB.self))
+			let feedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: feedFetchRequest)
+			do {
+				try context.execute(feedBatchDeleteRequest)
+				completion(nil)
+			} catch {
+				completion(error)
+			}
 		}
 	}
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-		do {
-			let context = self.persistentContainer.newBackgroundContext()
-			try feedDB(for: feed, timestamp: timestamp, context: context)
-			try context.save()
-			completion(nil)
-		} catch {
-			completion(error)
+		queue.async(flags: .barrier) { [weak self] in
+			guard let self = self else { return }
+			do {
+				let context = self.persistentContainer.newBackgroundContext()
+				try self.feedDB(for: feed, timestamp: timestamp, context: context)
+				try context.save()
+				completion(nil)
+			} catch {
+				completion(error)
+			}
 		}
 	}
 	
 	public func retrieve(completion: @escaping RetrievalCompletion) {
-		do {
-			let context = self.persistentContainer.newBackgroundContext()
-			let feedDBs = try fetchFeedDBs(withContext: context)
-			guard
-				let feedDB = feedDBs.first,
-				let timestamp = feedDB.timestamp,
-				let localFeedImages = feedDB.localFeedImages else {
-				completion(.empty)
-				return
+		queue.async(flags: .barrier) { [weak self] in
+			guard let self = self else { return }
+			do {
+				let context = self.persistentContainer.newBackgroundContext()
+				let feedDBs = try self.fetchFeedDBs(withContext: context)
+				guard
+					let feedDB = feedDBs.first,
+					let timestamp = feedDB.timestamp,
+					let localFeedImages = feedDB.localFeedImages else {
+					completion(.empty)
+					return
+				}
+				completion(.found(feed: localFeedImages, timestamp: timestamp))
+			} catch {
+				completion(.failure(error))
 			}
-			completion(.found(feed: localFeedImages, timestamp: timestamp))
-		} catch {
-			completion(.failure(error))
 		}
 	}
 }
