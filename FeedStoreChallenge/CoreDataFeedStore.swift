@@ -32,58 +32,57 @@ public final class CoreDataFeedStore: FeedStore {
 	public init () {}
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-		let context = self.persistentContainer.newBackgroundContext()
-		context.perform { [weak self] in
-			guard let self = self else { return }
-			self.queue.async(flags: .barrier) {
-				let context = self.persistentContainer.newBackgroundContext()
-				let feedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: FeedDB.self))
-				let feedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: feedFetchRequest)
-				do {
-					try context.execute(feedBatchDeleteRequest)
-					completion(nil)
-				} catch {
-					completion(error)
-				}
+		perform { context in
+			let feedFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: FeedDB.self))
+			let feedBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: feedFetchRequest)
+			do {
+				try context.execute(feedBatchDeleteRequest)
+				completion(nil)
+			} catch {
+				completion(error)
 			}
 		}
 	}
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-		let context = self.persistentContainer.newBackgroundContext()
-		context.perform { [weak self] in
-			guard let self = self else { return }
-			self.queue.async(flags: .barrier) {
-				do {
-					let context = self.persistentContainer.newBackgroundContext()
-					try self.feedDB(for: feed, timestamp: timestamp, context: context)
-					try context.save()
-					completion(nil)
-				} catch {
-					completion(error)
-				}
+		perform { context in
+			do {
+				try CoreDataFeedStore.feedDB(for: feed, timestamp: timestamp, context: context)
+				try context.save()
+				completion(nil)
+			} catch {
+				completion(error)
 			}
 		}
 	}
 	
 	public func retrieve(completion: @escaping RetrievalCompletion) {
+		perform { context in
+			do {
+				let feedDBs = try CoreDataFeedStore.fetchFeedDBs(withContext: context)
+				guard
+					let feedDB = feedDBs.first,
+					let timestamp = feedDB.timestamp,
+					let localFeedImages = feedDB.localFeedImages else {
+					completion(.empty)
+					return
+				}
+				completion(.found(feed: localFeedImages, timestamp: timestamp))
+			} catch {
+				completion(.failure(error))
+			}
+		}
+	}
+}
+
+// MARK
+extension CoreDataFeedStore {
+	private func perform(action: @escaping (NSManagedObjectContext) -> Void) {
 		let context = self.persistentContainer.newBackgroundContext()
 		context.perform { [weak self] in
 			guard let self = self else { return }
 			self.queue.async(flags: .barrier) {
-				do {
-					let feedDBs = try self.fetchFeedDBs(withContext: context)
-					guard
-						let feedDB = feedDBs.first,
-						let timestamp = feedDB.timestamp,
-						let localFeedImages = feedDB.localFeedImages else {
-						completion(.empty)
-						return
-					}
-					completion(.found(feed: localFeedImages, timestamp: timestamp))
-				} catch {
-					completion(.failure(error))
-				}
+				action(context)
 			}
 		}
 	}
@@ -91,9 +90,9 @@ public final class CoreDataFeedStore: FeedStore {
 
 extension CoreDataFeedStore {
 	@discardableResult
-	private func feedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
+	private static func feedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
 		var feedDB: FeedDB
-		let feedDBs = try fetchFeedDBs(withContext: context)
+		let feedDBs = try CoreDataFeedStore.fetchFeedDBs(withContext: context)
 		
 		if let returnedFeedDB = feedDBs.first {
 			feedDB = returnedFeedDB
@@ -106,20 +105,20 @@ extension CoreDataFeedStore {
 		return feedDB
 	}
 	
-	private func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> FeedDB {
+	private static func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) -> FeedDB {
 		let coreDataFeed = FeedDB(context: context, timestamp: timestamp)
 		coreDataFeed.timestamp = timestamp
 		coreDataFeed.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
 		return coreDataFeed
 	}
 	
-	private func addFeedImagesToFeedDB(for coreDataFeed: FeedDB, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> FeedDB {
+	private static func addFeedImagesToFeedDB(for coreDataFeed: FeedDB, from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> FeedDB {
 		coreDataFeed.feedImageDBs = nil
 		coreDataFeed.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
 		return coreDataFeed
 	}
 	
-	private func createFeedDBImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
+	private static func createFeedDBImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
 		NSOrderedSet(array: localFeedImages.map { localFeedImage in
 			let coreDataFeedImage = FeedImageDB(context: context)
 			coreDataFeedImage.id = localFeedImage.id
@@ -133,7 +132,7 @@ extension CoreDataFeedStore {
 
 // MARK: - Fetch Methods
 extension CoreDataFeedStore {
-	private func fetchFeedDBs(withContext context: NSManagedObjectContext) throws -> [FeedDB] {
+	private static func fetchFeedDBs(withContext context: NSManagedObjectContext) throws -> [FeedDB] {
 		let request = FeedDB.createFetchRequest()
 		return try context.fetch(request)
 	}
