@@ -156,9 +156,3 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 //	}
 //
 //}
-
-
-XCTAssertEqual failed: ("[FeedStoreChallenge.LocalFeedImage(id: 77C6FFD5-0DDE-466D-A890-B1A2CBB7C216, description: Optional("<FeedImageDB: 0x100c57250> (entity: FeedImageDB; id: 0x15d0bad38027bfd9 <x-coredata://5A1DA095-7B0A-410F-8858-FE31D6EF0DC9/FeedImageDB/p64>; data: {\n    desc = \"any description\";\n    feedDB = \"0x15d0bad396a7bff9 <x-coredata://5A1DA095-7B0A-410F-8858-FE31D6EF0DC9/FeedDB/p26>\";\n    id = \"77C6FFD5-0DDE-466D-A890-B1A2CBB7C216\";\n    location = \"any location\";\n    url = \"http://any-url.com\";\n})"), location: Optional("any location"), url: http://any-url.com),
-
-"FeedStoreChallenge.LocalFeedImage(id: FAD1ED49-8D72-46A4-AF1A-3532249FF668, description: Optional("<FeedImageDB: 0x100c51450> (entity: FeedImageDB; id: 0x15d0bad39fe7bfd9 <x-coredata://5A1DA095-7B0A-410F-8858-FE31D6EF0DC9/FeedImageDB/p63>; data: {\n    desc = \"any description\";\n    feedDB = \"0x15d0bad396a7bff9 <x-coredata://5A1DA095-7B0A-410F-8858-FE31D6EF0DC9/FeedDB/p26>\";\n    id = \"FAD1ED49-8D72-46A4-AF1A-3532249FF668\";\n    location = \"any location\";\n    url = \"http://any-url.com\";\n})"), location: Optional("any location"), url: http://any-url.com)]") is not equal to
-"[FeedStoreChallenge.LocalFeedImage(id: 77C6FFD5-0DDE-466D-A890-B1A2CBB7C216, description: Optional("any description"), location: Optional("any location"), url: http://any-url.com), FeedStoreChallenge.LocalFeedImage(id: FAD1ED49-8D72-46A4-AF1A-3532249FF668, description: Optional("any description"), location: Optional("any location"), url: http://any-url.com)]")

@@ -130,7 +130,7 @@ fileprivate extension FeedDB {
 		return coreDataFeedImages.compactMap { coreDataFeedImage -> LocalFeedImage? in
 			guard let id = coreDataFeedImage.id, let url = coreDataFeedImage.url else { return nil }
 			let feed = LocalFeedImage(id: id,
-									  description: coreDataFeedImage.description,
+									  description: coreDataFeedImage.desc,
 									  location: coreDataFeedImage.location,
 									  url: url)
 			return feed
