@@ -24,7 +24,7 @@ extension CoreDataFeedStore {
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		perform { context in
 			do {
-				try FeedDB.fetch(in: context).map(context.delete)
+				try CoreDataFeed.fetch(in: context).map(context.delete)
 				try context.save()
 				completion(nil)
 			} catch {
@@ -36,7 +36,7 @@ extension CoreDataFeedStore {
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		perform { context in
 			do {
-				try CoreDataFeedStore.createFeedDB(for: feed, timestamp: timestamp, context: context)
+				try CoreDataFeedStore.createCoreDataFeed(for: feed, timestamp: timestamp, context: context)
 				try context.save()
 				completion(nil)
 			} catch {
@@ -48,8 +48,8 @@ extension CoreDataFeedStore {
 	public func retrieve(completion: @escaping RetrievalCompletion) {
 		perform { context in
 			do {
-				let feedDB = try FeedDB.fetch(in: context)
-				if let localFeedImages = feedDB?.localFeedImages, let timestamp = feedDB?.timestamp {
+				let coreDataFeed = try CoreDataFeed.fetch(in: context)
+				if let localFeedImages = coreDataFeed?.localFeedImages, let timestamp = coreDataFeed?.timestamp {
 					completion(.found(feed: localFeedImages, timestamp: timestamp))
 				} else {
 					completion(.empty)
@@ -64,13 +64,13 @@ extension CoreDataFeedStore {
 // MARK: Creation Methods
 extension CoreDataFeedStore {
 	@discardableResult
-	private static func createFeedDB(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> FeedDB {
-		try FeedDB.fetch(in: context).map(context.delete)
+	private static func createCoreDataFeed(for localFeedImages: [LocalFeedImage], timestamp: Date, context: NSManagedObjectContext) throws -> CoreDataFeed {
+		try CoreDataFeed.fetch(in: context).map(context.delete)
 		
-		let feedDB = FeedDB(context: context, timestamp: timestamp)
-		feedDB.feedImageDBs = FeedImageDB.feedImageDBs(from: localFeedImages, withContext: context)
-		feedDB.timestamp = timestamp
-		return feedDB
+		let coreDataFeed = CoreDataFeed(context: context, timestamp: timestamp)
+		coreDataFeed.coreDataFeedImages = CoreDataFeedImage.coreDataFeedImages(from: localFeedImages, withContext: context)
+		coreDataFeed.timestamp = timestamp
+		return coreDataFeed
 	}
 }
 
@@ -84,10 +84,10 @@ extension CoreDataFeedStore {
 	}
 }
 
-// MARK: FeedDB Extension
-fileprivate extension FeedDB {
+// MARK: CoreDataFeed Extension
+fileprivate extension CoreDataFeed {
 	var localFeedImages: [LocalFeedImage]? {
-		guard let coreDataFeedImages = feedImageDBs.array as? [FeedImageDB] else {
+		guard let coreDataFeedImages = coreDataFeedImages.array as? [CoreDataFeedImage] else {
 			return nil
 		}
 		return coreDataFeedImages.compactMap { coreDataFeedImage -> LocalFeedImage? in
@@ -100,11 +100,11 @@ fileprivate extension FeedDB {
 	}
 }
 
-// MARK: FeedImageDB Extension
-fileprivate extension FeedImageDB {
-	static func feedImageDBs(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
+// MARK: CoreDataFeedImage Extension
+fileprivate extension CoreDataFeedImage {
+	static func coreDataFeedImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
 		NSOrderedSet(array: localFeedImages.map { localFeedImage in
-			let coreDataFeedImage = FeedImageDB(context: context)
+			let coreDataFeedImage = CoreDataFeedImage(context: context)
 			coreDataFeedImage.id = localFeedImage.id
 			coreDataFeedImage.desc = localFeedImage.description
 			coreDataFeedImage.location = localFeedImage.location

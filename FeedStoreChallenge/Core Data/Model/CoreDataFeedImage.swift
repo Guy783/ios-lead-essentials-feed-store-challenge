@@ -1,5 +1,5 @@
 //
-//  FeedImageDB.swift
+//  CoreDataFeedImage.swift
 //  FeedStoreChallenge
 //
 //  Created by Tak Mazarura on 26/02/2021.
@@ -7,11 +7,11 @@
 //
 
 import CoreData
-@objc(FeedImageDB)
-internal class FeedImageDB: NSManagedObject {
+@objc(CoreDataFeedImage)
+internal class CoreDataFeedImage: NSManagedObject {
 	@NSManaged internal var id: UUID
 	@NSManaged internal var desc: String?
 	@NSManaged internal var location: String?
 	@NSManaged internal var url: URL
-	@NSManaged internal var feedDB: FeedDB
+	@NSManaged internal var coreDataFeed: CoreDataFeed
 }
