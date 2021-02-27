@@ -9,28 +9,13 @@
 import Foundation
 import CoreData
 
-protocol CoreDataManager {
-	var managedObjectContext: NSManagedObjectContext { get set }
-	var persistentContainer: PersistentContainer { get set }
-}
-
 public final class CoreDataFeedStore: FeedStore {
-	private let container: PersistentContainer
+	private let container: NSPersistentContainer
 	private let context: NSManagedObjectContext
 	
-	public init () {
-		container = CoreDataFeedStore.setupContainer()
+	public init(storeURL: URL? = nil, bundle: Bundle = .main) throws {
+		container = try NSPersistentContainer.load(modelName: "FeedStoreDataModel", url: storeURL, in: bundle)
 		context = container.newBackgroundContext()
-	}
-	
-	static func setupContainer() -> PersistentContainer {
-		let container = PersistentContainer(name: "FeedStoreDataModel")
-		container.loadPersistentStores { description, error in
-			if let error = error {
-				fatalError("Unable to load persistent stores: \(error)")
-			}
-		}
-		return container
 	}
 }
 

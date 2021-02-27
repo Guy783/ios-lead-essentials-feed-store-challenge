@@ -29,7 +29,7 @@ class FeedStoreIntegrationTests: XCTestCase {
 	
 	func test_retrieve_deliversEmptyOnEmptyCache() throws {
 		let sut = try makeSUT()
-
+		
 		expect(sut, toRetrieve: .empty)
 	}
 	
@@ -38,9 +38,9 @@ class FeedStoreIntegrationTests: XCTestCase {
 		let storeToLoad = try makeSUT()
 		let feed = uniqueImageFeed()
 		let timestamp = Date()
-
+		
 		insert((feed, timestamp), to: storeToInsert)
-
+		
 		expect(storeToLoad, toRetrieve: .found(feed: feed, timestamp: timestamp))
 	}
 	
@@ -48,13 +48,13 @@ class FeedStoreIntegrationTests: XCTestCase {
 		let storeToInsert = try makeSUT()
 		let storeToOverride = try makeSUT()
 		let storeToLoad = try makeSUT()
-
+		
 		insert((uniqueImageFeed(), Date()), to: storeToInsert)
-
+		
 		let latestFeed = uniqueImageFeed()
 		let latestTimestamp = Date()
 		insert((latestFeed, latestTimestamp), to: storeToOverride)
-
+		
 		expect(storeToLoad, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
 	}
 	
@@ -62,31 +62,32 @@ class FeedStoreIntegrationTests: XCTestCase {
 		let storeToInsert = try makeSUT()
 		let storeToDelete = try makeSUT()
 		let storeToLoad = try makeSUT()
-
+		
 		insert((uniqueImageFeed(), Date()), to: storeToInsert)
-
+		
 		deleteCache(from: storeToDelete)
-
+		
 		expect(storeToLoad, toRetrieve: .empty)
 	}
 	
 	// - MARK: Helpers
-	private func makeSUT() throws -> FeedStore {
-		let sut = CoreDataFeedStore()
-		trackForMemoryLeaks(sut)
+	private func makeSUT(file: StaticString = #file, line: UInt = #line) throws -> FeedStore {
+		let storeBundle = Bundle(for: CoreDataFeedStore.self)
+		let sut = try CoreDataFeedStore(bundle: storeBundle)
 		return sut
 	}
 	
 	private func setupEmptyStoreState() throws {
-		clearCoreDataStore()
-	}
-
-	private func undoStoreSideEffects() throws {
-		clearCoreDataStore()
+		try clearCoreDataStore()
 	}
 	
-	private func clearCoreDataStore() {
-		let sut = CoreDataFeedStore()
+	private func undoStoreSideEffects() throws {
+		try clearCoreDataStore()
+	}
+	
+	private func clearCoreDataStore() throws {
+		let sut = try makeSUT()
 		sut.deleteCachedFeed { _ in }
+		_ = XCTWaiter.wait(for: [], timeout: 2.0)
 	}
 }
