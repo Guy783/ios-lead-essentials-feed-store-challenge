@@ -72,9 +72,9 @@ class FeedStoreIntegrationTests: XCTestCase {
 	
 	// - MARK: Helpers
 	private func makeSUT() throws -> FeedStore {
-		let store = CoreDataFeedStore()
-		trackForMemoryLeaks(store)
-		return store
+		let sut = CoreDataFeedStore()
+		trackForMemoryLeaks(sut)
+		return sut
 	}
 	
 	private func setupEmptyStoreState() throws {
@@ -83,5 +83,10 @@ class FeedStoreIntegrationTests: XCTestCase {
 
 	private func undoStoreSideEffects() throws {
 		clearCoreDataStore()
+	}
+	
+	private func clearCoreDataStore() {
+		let sut = CoreDataFeedStore()
+		sut.deleteCachedFeed { _ in }
 	}
 }

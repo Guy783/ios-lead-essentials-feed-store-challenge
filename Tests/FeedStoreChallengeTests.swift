@@ -94,8 +94,8 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	// - MARK: Helpers
 	
 	private func makeSUT() throws -> FeedStore {
-		clearCoreDataStore()
 		let sut = CoreDataFeedStore()
+		sut.deleteCachedFeed { _ in }
 		trackForMemoryLeaks(sut)
 		return sut
 	}

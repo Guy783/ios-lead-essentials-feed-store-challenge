@@ -40,7 +40,7 @@ extension CoreDataFeedStore {
 		perform { context in
 			do {
 				try FeedDB.fetch(in: context).map(context.delete)
-				try self.container.saveContext(backgroundContext: context)
+				try context.save()
 				completion(nil)
 			} catch {
 				completion(error)
@@ -52,7 +52,7 @@ extension CoreDataFeedStore {
 		perform { context in
 			do {
 				try CoreDataFeedStore.createFeedDB(for: feed, timestamp: timestamp, context: context)
-				try self.container.saveContext(backgroundContext: context)
+				try context.save()
 				completion(nil)
 			} catch {
 				completion(error)
@@ -83,20 +83,9 @@ extension CoreDataFeedStore {
 		try FeedDB.fetch(in: context).map(context.delete)
 		
 		let feedDB = FeedDB(context: context, timestamp: timestamp)
-		feedDB.feedImageDBs = createFeedDBImages(from: localFeedImages, withContext: context)
+		feedDB.feedImageDBs = FeedImageDB.feedImageDBs(from: localFeedImages, withContext: context)
 		feedDB.timestamp = timestamp
 		return feedDB
-	}
-	
-	private static func createFeedDBImages(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
-		NSOrderedSet(array: localFeedImages.map { localFeedImage in
-			let coreDataFeedImage = FeedImageDB(context: context)
-			coreDataFeedImage.id = localFeedImage.id
-			coreDataFeedImage.desc = localFeedImage.description ?? ""
-			coreDataFeedImage.location = localFeedImage.location
-			coreDataFeedImage.url = localFeedImage.url
-			return coreDataFeedImage
-		})
 	}
 }
 
@@ -110,19 +99,32 @@ extension CoreDataFeedStore {
 	}
 }
 
+// MARK: FeedDB Extension
 fileprivate extension FeedDB {
 	var localFeedImages: [LocalFeedImage]? {
-		guard let coreDataFeedImagesSet = feedImageDBs,
-			  let coreDataFeedImages = coreDataFeedImagesSet.array as? [FeedImageDB] else {
+		guard let coreDataFeedImages = feedImageDBs.array as? [FeedImageDB] else {
 			return nil
 		}
 		return coreDataFeedImages.compactMap { coreDataFeedImage -> LocalFeedImage? in
-			guard let id = coreDataFeedImage.id, let url = coreDataFeedImage.url else { return nil }
-			let feed = LocalFeedImage(id: id,
+			let feed = LocalFeedImage(id: coreDataFeedImage.id,
 									  description: coreDataFeedImage.desc,
 									  location: coreDataFeedImage.location,
-									  url: url)
+									  url: coreDataFeedImage.url)
 			return feed
 		}
+	}
+}
+
+// MARK: FeedImageDB Extension
+fileprivate extension FeedImageDB {
+	static func feedImageDBs(from localFeedImages: [LocalFeedImage], withContext context: NSManagedObjectContext) -> NSOrderedSet {
+		NSOrderedSet(array: localFeedImages.map { localFeedImage in
+			let coreDataFeedImage = FeedImageDB(context: context)
+			coreDataFeedImage.id = localFeedImage.id
+			coreDataFeedImage.desc = localFeedImage.description
+			coreDataFeedImage.location = localFeedImage.location
+			coreDataFeedImage.url = localFeedImage.url
+			return coreDataFeedImage
+		})
 	}
 }

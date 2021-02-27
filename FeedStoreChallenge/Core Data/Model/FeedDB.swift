@@ -7,12 +7,16 @@
 //
 
 import CoreData
+@objc(FeedDB)
+internal class FeedDB: NSManagedObject {
+	@NSManaged internal var timestamp: Date
+	@NSManaged internal var feedImageDBs: NSOrderedSet
+}
 
 // MARK: - Convenience init
 extension FeedDB {
-	convenience init(context: NSManagedObjectContext, id: UUID = UUID(), timestamp: Date) {
+	convenience init(context: NSManagedObjectContext, timestamp: Date) {
 		self.init(context: context)
-		self.id = UUID()
 		self.timestamp = timestamp
 	}
 }
