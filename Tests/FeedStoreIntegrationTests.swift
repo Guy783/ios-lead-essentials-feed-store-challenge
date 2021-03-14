@@ -85,8 +85,6 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 	
 	private func clearCoreDataStore() throws {
-		let sut = try makeSUT()
-		sut.deleteCachedFeed { _ in }
-		_ = XCTWaiter.wait(for: [], timeout: 2.0)
+		deleteCache(from: try CoreDataFeedStore(bundle: Bundle(for: CoreDataFeedStore.self)))
 	}
 }
