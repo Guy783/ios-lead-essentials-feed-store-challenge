@@ -2,7 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20B29" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="CoreDataFeed" representedClassName="CoreDataFeed" syncable="YES">
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="coreDataFeedImages" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="CoreDataFeedImage" inverseName="coreDataFeed" inverseEntity="CoreDataFeedImage"/>
+        <relationship name="coreDataFeedImages" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="CoreDataFeedImage" inverseName="coreDataFeed" inverseEntity="CoreDataFeedImage"/>
     </entity>
     <entity name="CoreDataFeedImage" representedClassName="CoreDataFeedImage" syncable="YES">
         <attribute name="desc" optional="YES" attributeType="String"/>

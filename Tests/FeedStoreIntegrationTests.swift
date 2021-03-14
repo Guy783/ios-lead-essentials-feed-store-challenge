@@ -4,7 +4,6 @@
 
 import XCTest
 import FeedStoreChallenge
-import CoreData
 
 class FeedStoreIntegrationTests: XCTestCase {
 	
