@@ -7,8 +7,8 @@
 //
 
 import CoreData
-@objc(CoreDataFeed)
 
+@objc(CoreDataFeed)
 internal class CoreDataFeed: NSManagedObject {
 	@NSManaged internal var timestamp: Date
 	@NSManaged internal var coreDataFeedImages: NSOrderedSet

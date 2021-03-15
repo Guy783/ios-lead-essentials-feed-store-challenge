@@ -7,8 +7,8 @@
 //
 
 import CoreData
-@objc(CoreDataFeedImage)
 
+@objc(CoreDataFeedImage)
 internal class CoreDataFeedImage: NSManagedObject {
 	@NSManaged internal var id: UUID
 	@NSManaged internal var desc: String?
